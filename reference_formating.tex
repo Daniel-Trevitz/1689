@@ -1,0 +1,86 @@
+% This document controls the formating of the references 
+% There are two styles possible; the Renihan and LBCW documents use footnotes.
+% The old documents use margin notes.
+
+%FN variant%
+%FN%\newcommand{\footnotebegin}{\begin{enumerate}[noitemsep]}
+%FN%\newcommand{\footnoteend}{\end{enumerate}}
+
+%MARGIN Variant%
+\newcommand{\footnotebegin}{}
+\newcommand{\footnoteend}{}
+
+
+
+
+\newcounter{Reference}
+\newcounter{Check}
+% Same as above but never reset
+\newcounter{TotalRefCnt}
+\newcounter{TotalCheckCnt}
+
+
+% This lets us confirm that the two counters are staying in sync
+\newcommand{\TestSameSymbols}[2]{
+  \IfStrEq{#1}{#2}{}{\PackageWarning{None}{OH NO! Your reference counters are not adding up!}}
+}
+
+\newcommand{\ResetReference}{
+    % Confirm that all of the references were cited
+    \TestSameSymbols{\arabic{Reference}}{\arabic{Check}}
+    
+    \setcounter{Reference}{0}
+    \setcounter{Check}{0}
+}
+
+\newcommand{\R}{%
+    \stepcounter{TotalRefCnt}%
+    \stepcounter{Reference}%
+    \textsuperscript{\arabic{Reference}}%
+    %MARGIN%
+    \marginpar{\Reference{\arabic{TotalRefCnt}}}
+}
+
+
+\newcommand{\Rs}{%
+    \stepcounter{TotalRefCnt}%
+    \stepcounter{Reference}%
+    \textsuperscript{\arabic{Reference}}%
+    %MARGIN%
+    \marginpar{\Reference{\arabic{TotalRefCnt}}}
+}
+
+\newcommand{\C}[2]{
+    \stepcounter{Check}
+    \stepcounter{TotalCheckCnt}
+    \TestSameSymbols{#1}{\arabic{Check}} % Check if the manual incrementing matches the automatic ones
+    
+    %FN%\item[\textsuperscript{#1}]#2
+    
+    \WriteReference{\theTotalCheckCnt}{(\theCheck) #2}
+}
+
+\newcommand{\Cs}[2]{
+    \stepcounter{Check}
+    \stepcounter{TotalCheckCnt}
+    \TestSameSymbols{#1}{\arabic{Check}}
+    
+    %FN%\item[\textsuperscript{#1}]#2
+
+    \WriteReference{\theTotalCheckCnt}{(\theCheck) #2}
+}
+
+
+
+
+% Create a file called 1689.refs that contains all of the references
+\newwrite\refrencesout
+\immediate\openout\refrencesout=\jobname.refs.tex
+\AtEndDocument{ \immediate\closeout\refrencesout }
+
+  \immediate\write\refrencesout{\string\PackageWarning{None}{I HAVE LOADED THE REFS!}}
+\newcommand{\WriteReference}[2]{
+  \immediate\write\refrencesout{\string\SetReference{#1}{#2} }
+}
+
+
