@@ -5,7 +5,7 @@
     11pt,
     twoside,
     DIV=calc,
-    open=any
+    openany
 ]{scrbook}
 % \usepackage{scrlayer-scrpage}
 
@@ -19,20 +19,20 @@
   marginparsep=0.125in
 ]{geometry}
 
-\RedeclareSectionCommand[
-  beforeskip=0\baselineskip,
-  afterskip=1\baselineskip
-]{chapter}
+% \RedeclareSectionCommand[
+%   beforeskip=0pt,
+%   afterskip=1\baselineskip
+% ]{chapter}
 
 \usepackage{iftex}
 \usepackage{expl3}
 %---------------------------- font settings
-\usepackage[utf8]{inputenc}
+%\usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
  
 \usepackage[T1]{fontenc}
  
-
+\usepackage{needspace}
 \usepackage{lettrine}
 \usepackage{type1cm}
 % \usepackage{biblatex}
@@ -45,13 +45,18 @@
 % \usepackage{mparhack} 
 
 \usepackage{darkmode}
-% \enabledarkmode
+\enabledarkmode
 
 % \usepackage{lmodern}
 % \usepackage[protrusion=false,final,letterspace=-100]{microtype}
 %\usepackage{lmodern}
 \usepackage[osf]{ebgaramond}
-\usepackage{microtype}
+\usepackage[tracking=true]{microtype}
+\usepackage{hanging}
+\usepackage{graphicx}
+
+\newcommand{\longs}{ſ}
+\newcommand{\longss}{ſſ}
 
 % Font style
 \setkomafont{disposition}{\rmfamily}
@@ -61,34 +66,49 @@
 
 % Shrink the margin to the size of the footnotes
 \makeatletter
+\renewcommand\tiny{\@setfontsize\tiny{7}{8}}
 \renewcommand\@marginparreset{%
   \reset@font
   \raggedright
-  \footnotesize
+  \tiny
 }
 \makeatother
 
-% Add a '.' to the end of the chapter titles
-\let\origchap\chapter
-\renewcommand{\chapter}[1]{\origchap{#1.}}
-
 % Format the chapter number to be Chap. roman{N}.
-\renewcommand{\thechapter}{\scshape{Chap.} \roman{chapter}}
-
-% Set the chapter fonts
-\setkomafont{chapter}{\Huge\rmfamily\itshape\scshape\centering}
-\renewcommand*\chapterformat{%
-    \centering\normalfont\fontsize{64}{64}\selectfont{}\thechapter.
-}
+\renewcommand{\thechapter}{\arabic{chapter}.}
 
 % Put the chapter number and the chapter title on different lines
 \makeatletter
-\renewcommand*{\chapterlinesformat}[3]{%
-  {\usekomafont{chapter}#2\linebreak}% number line
-  {\usekomafont{chapter}#3}% title line
+\renewcommand*{\chapter}{%
+  \if@openright\else\if@twoside\else\fi\fi
+  \thispagestyle{plain}%
+  \global\@topnum\z@
+  \@afterindentfalse
+  \secdef\@chapter\@schapter
 }
 \makeatother
 
+\makeatletter
+\renewcommand*{\@makechapterhead}[1]{%
+  \vspace{1\baselineskip}
+  \vbox{
+    \centering
+    \rule{\textwidth}{0.6pt}
+    \vspace{0.5\baselineskip}
+    \normalfont\huge\scshape Chap. \Roman{chapter}.\linebreak
+    \normalfont\huge\textit{#1}.\par\nobreak\normalfont
+    \vspace{0.5\baselineskip}
+  }
+}
+\makeatother
+
+% Used by the 'Of The XXX Testament' in Chapter 1
+% Make this match the chapter format
+\RedeclareSectionCommand[
+  beforeskip=.75\baselineskip,
+  afterskip=.5\baselineskip,
+  font=\huge\rmfamily\itshape\scshape\centering
+]{subparagraph}
 
 %Design:
 %
@@ -146,15 +166,15 @@
 
 % Setter: sets a key-value pair
 \cs_new_protected:Npn \my_ref_set:nn #1#2
-  {
-    \prop_gput:Nnn \g_ref_prop {#1} {#2}
-  }
+{
+  \prop_gput:Nnn \g_ref_prop {#1} {#2}
+}
 
 % Getter: gets the value for a key
 \cs_new:Npn \my_ref_get:n #1
-  {
-    \prop_item:Nn \g_ref_prop {#1}
-  }
+{
+  \prop_item:Nn \g_ref_prop {#1}
+}
 
 \NewDocumentCommand{\SetReference}{mm}{ \my_ref_set:nn {#1} {#2} }
 \NewDocumentCommand{\Reference}{m}{ \exp_args:Ne \my_ref_get:n {#1} }
@@ -163,7 +183,15 @@
 
 
 
-\newcommand{\oldleadin}[2]{\lettrine[ante=\textbf{1},lines=2,lraise=0.1,findent=-0.4em,nindent=0em, slope=0em]{\color{red}\firstlettercommand{#2}}{\RemoveFirstLetter{#2}}}
+\newcommand{\oldleadin}[2]{\lettrine[ante=\textbf{1},lines=2,lraise=0.1,findent=-0.3em,nindent=0.1em, slope=0em]{\color{red}\firstlettercommand{#2}}{\RemoveFirstLetter{#2}}}
+
+%Chapter 12 is the only one without paragraph markers
+\newcommand{\oldleadinXII}[2]{\lettrine[lines=2,lraise=0.1,findent=-0.3em,nindent=0em, slope=0em]{\color{red}\firstlettercommand{#2}}{\RemoveFirstLetter{#2}}}
+\let\cleardoublepage\clearpage
+
+% Use this when you don't want fancy lettrine
+%\newcommand{\oldleadin}[2]{#2}
+%\newcommand{\oldleadinXII}[2]{#2}
 
 % When using lettrine we can't use paragraph 1. However for other document forms we want it!
 %\newcommand{\firstparagraph}{\paragraph{1}}
@@ -175,15 +203,115 @@
 \input{reference_formating.tex}
 
 \begin{document}
-\maketitle
+
+\frontmatter          % switches to roman numerals
+
+\begin{titlepage}
+
+%421x800
+% 1:1.9
+\thispagestyle{empty}
+\setlength{\fboxrule}{0.17em}
+\setlength{\fboxsep}{-0.5pt}
+\fbox {
+  \parbox[c][1.67\textwidth][t]{0.9\textwidth}{% 1.71=0.9*1.9
+    {
+      {
+        \centering
+        \addvspace{0.060\linewidth}
+        {\fontsize{0.070\linewidth}{1pt}\selectfont A}\\*
+        \addvspace{0.040\linewidth}
+        {\fontsize{0.100\linewidth}{1pt}\selectfont\bfseries \textls[250]{CONFESSION}}\\*
+        \addvspace{0.040\linewidth}
+        {\fontsize{0.070\linewidth}{1pt}\selectfont \textls[250]{OF}\\*}
+        \addvspace{0.030\linewidth}
+        {\fontsize{0.180\linewidth}{1pt}\selectfont \textls[350]{FAIT}H,\\*}
+        \addvspace{0.010\linewidth}
+        {\fontsize{0.055\linewidth}{1pt}\selectfont Put forth by the\\*}
+        \addvspace{0.020\linewidth}
+        {
+          \fontsize{0.100\linewidth}{1pt}\selectfont\textit{Elders} 
+          \fontsize{0.110\linewidth}{1pt}\selectfont{}and
+          \fontsize{0.100\linewidth}{1pt}\selectfont\textit{Brethren}\\*
+        }
+        \addvspace{0.030\linewidth}
+        {\fontsize{0.055\linewidth}{1pt}\selectfont Of many\\*}
+        \addvspace{0.030\linewidth}
+        {\fontsize{0.090\linewidth}{1pt}\selectfont\textbf{\textls[150]{CONGREGATIONS}}\\*}
+        \addvspace{0.030\linewidth}
+        {\fontsize{0.070\linewidth}{1pt}\selectfont \textls[250]{OF}\\*}
+        \addvspace{0.030\linewidth}
+        {\fontsize{0.100\linewidth}{1pt}\textbf\selectfont\textit{{\textls[120]{CHRISTIAN}S}},\\*}
+        \addvspace{0.020\linewidth}
+        {\fontsize{0.060\linewidth}{1pt}\selectfont (Baptized upon Profe\longss{}ion of their Faith)\\*}
+        \addvspace{0.020\linewidth}
+        {\fontsize{0.055\linewidth}{1pt}\selectfont \textls[250]{IN}\\*}
+        \addvspace{0.020\linewidth}
+        {\fontsize{0.070\linewidth}{1pt}\selectfont\textit{London} and the \textit{Country}.\\*}
+        \addvspace{0.020\linewidth}
+        {\fontsize{0.055\linewidth}{1pt}\selectfont With an\\*}
+        \addvspace{0.020\linewidth}
+        {\fontsize{0.075\linewidth}{1pt}\selectfont\textbf{\textsc{Appendix}} concerning Bapti\longs{}m.\\*}
+        {\rule{0.95\linewidth}{0.17em}\par}
+      }
+      
+        \fontsize{0.045\linewidth}{1pt}\selectfont
+      {
+        \addvspace{0.020\linewidth}
+        {
+          \noindent
+          \hangindent=0.06\linewidth
+          \hangafter=1
+            \textit{\makebox[\linewidth][c]{\makebox[0.98\linewidth][s]{With the Heart man believeth unto Righteou\longs{}ne\longs{}s,}}\\
+            and with the Mouth Confe\longss{}ion is made unto Salva-\\
+            tion,} Rom.\ 10.\ 10.\par
+        }
+        
+        \hspace{0.015\linewidth}\textit{Search the Scriptures,} John 5.\ 39.
+        \par
+        \addvspace{0.010\linewidth}
+      }
+      
+      {\centering\rule{0.95\linewidth}{0.17em}\par}
+      \addvspace{0.040\linewidth}
+      {
+      \centering
+        \textit{London} : Printed for \textit{John Marshal}, at the \textit{Harrow}\\
+        again\longs{}t the \textit{Church} in the \textit{Poultrey}. 2026.
+        \par
+      }
+    }
+  }
+}
+\end{titlepage}
+
+\tableofcontents      % i, ii, iii, ...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\mainmatter % Begin the actual pages
+
+\rule{\textwidth}{0.4pt}\par
+\rule{\textwidth}{0.4pt}\par
+\vspace{1cm}
+
+{
+\centering
+
+{\large A\par}
+\vspace{0.1cm}
+{\huge CONFESSION\par}
+\vspace{0.1cm}
+{\large OF\par}
+{\Huge FAITH.\par}
+}
+
 % Chapter 1
 \ResetReference
 \chapter{Of the Holy Scriptures} %1688
 
 \firstparagraph{} %1688
-\oldleadin{THE}{The} Holy Scripture is the only sufficient, certain, and infallible \R{}Rule of all Saving Knowledge, Faith, and Obedience; Although the light \R{}of Nature, and the works of Creation and Providence do so far manifest the goodness, wisdom, and power of God, as to leave men inexcusable; yet are they not sufficient to give that knowledge of God and his Will, which is necessary unto Salvation. \R{}Therefore it pleased the Lord at sundry times, and in divers manners, to reveal himself, and to  ndeclare that his Will unto his Church; and afterward for the better preserving, and propagating of the Truth, and for the more sure Establishment, and Comfort of the Church against the corruption of the Flesh, and the malice of Satan, and of the World, to commit the same wholly unto \R{}writing; which maketh the Holy Scriptures to be most necessary, those former ways of God’s revealing his Will unto his People being now ceased.
+\oldleadin{THE}{The} Holy Scripture is the only sufficient, certain, and infallible \R{}Rule of all Saving Knowledge, Faith, and Obedience; Although the light \R{}of Nature, and the works of Creation and Providence do so far manifest the goodness, wisdom, and power of God, as to leave men inexcusable; yet are they not sufficient to give that knowledge of God and his Will, which is necessary unto Salvation. \R{}Therefore it pleased the Lord at sundry times, and in divers manners, to reveal himself, and to  declare that his Will unto his Church; and afterward for the better preserving, and propagating of the Truth, and for the more sure Establishment, and Comfort of the Church against the corruption of the Flesh, and the malice of Satan, and of the World, to commit the same wholly unto \R{}writing; which maketh the Holy Scriptures to be most necessary, those former ways of God’s revealing his Will unto his People being now ceased.
 
 \footnotebegin
 \C{1}{2 Timothy 3:15-17; Isaiah 8:20; Luke 16:29,31; Ephesians 2:20}
@@ -196,10 +324,10 @@
 Under the name of Holy Scripture, or the Word of God written, are now contained all the Books of the Old and New Testament, which are these:
 
 \subparagraph{Of the Old Testament}
-Genesis, Exodus, Leviticus, Numbers, Deuteronomy, Joshua, Judges, Ruth, 1 Samuel, 2 Samuel, 1 Kings, 2 Kings, 1 Chronicles, 2 Chronicles, Ezra, Nehemiah, Esther, Job, Psalms, Proverbs, Ecclesiastes, The Song of Songs, Isaiah, Jeremiah, Lamentations, Ezekiel, Daniel, Hosea, Joel, Amos, Obadiah, Jonah, Micah, Nahum, Habakkuk, Zephaniah, Haggai, Zechariah, Malachi.
+\textit{Genesis, Exodus, Leviticus, Numbers, Deuteronomy, Joshua, Judges, Ruth, 1 Samuel, 2 Samuel, 1 Kings, 2 Kings, 1 Chronicles, 2 Chronicles, Ezra, Nehemiah, Esther, Job, Psalms, Proverbs, Ecclesiastes, The Song of Songs, Isaiah, Jeremiah, Lamentations, Ezekiel, Daniel, Hosea, Joel, Amos, Obadiah, Jonah, Micah, Nahum, Habakkuk, Zephaniah, Haggai, Zechariah, Malachi.}
 
 \subparagraph{Of the New Testament}
-Matthew, Mark, Luke, John, The Acts of the Apostles, Paul's Epistle to the Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Colossians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, to Titus, to Philemon, the Epistle to the Hebrews, the Epistle of James, the first and second Epistles of Peter, the first, second and third Epistles of John, the Epistle of Jude, the Revelation.
+\textit{Matthew, Mark, Luke, John, The Acts of the Apostles, Paul's Epistle to the Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Colossians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, to Titus, to Philemon, the Epistle to the Hebrews, the Epistle of James, the first and second Epistles of Peter, the first, second and third Epistles of John, the Epistle of Jude, the Revelation.}
 
 All which are given by the \R{}inspiration of God, to be the Rule of Faith and Life.
 
@@ -674,7 +802,6 @@ The \textit{Lord Jesus}, in his Human Nature thus united to the Divine, in the P
 \C{17}{John 5:22,27; Matthew 28:18; Acts 2:36}
 \footnoteend
 
-\pagebreak
 \paragraph{4} %1688
 This Office the \textit{Lord Jesus} did most \R{}willingly undertake, which that he might discharge he was made under the Law, \R{}and did perfectly fulfil it, and underwent the \R{}punishment due to us, which we should have \oldgrammar{born}{borne} and suffered, being made \R{}\textit{Sin} and a \textit{Curse} for us: enduring most grievous sorrows \R{}in his Soul; and most painful sufferings in his Body; was crucified, and died, and remained in the state of the dead, yet saw no \R{}\textit{corruption}: on the \R{}third day he arose from the dead, with the same \R{}body in which he suffered; with which he also \R{}ascended into Heaven; and there sitteth at the right hand of \textit{his Father}, \R{}making intercession; and shall \R{}return to judge \textit{Men} and \textit{Angels}, at the end of the World.
 
@@ -718,7 +845,7 @@ Although the Price of Redemption was not actually paid by \textit{Christ} till a
 \C{32}{Revelation 13:8}
 \C{33}{Hebrews 13:8}
 \footnoteend
-
+\pagebreak
 \paragraph{7} %1688
 Christ in the work of \textit{Mediation} acteth according to both Natures, by each Nature doing that which is proper to itself; yet by reason of the Unity of the Person that which is proper to one Nature, is sometimes in \textit{Scripture} attributed to the Person \R{}denominated by the other Nature.
 
@@ -781,7 +908,7 @@ Man, by his fall into a state of sin, hath wholly lost \R{}all ability of will, 
 \C{5}{Ephesians 2:1,5}
 \C{6}{Titus 3:3-5; John 6:44}
 \footnoteend
-
+\pagebreak
 \paragraph{4}  %1688
 When God converts a sinner, and translates him into the state of Grace, \R{}he freeth him from his natural bondage under sin, and by his Grace alone, enables him \R{}freely to will, and to do that which is spiritually good; yet so as that by reason of his \R{}remaining corruptions, he doth not perfectly nor only will that which is good, but doth also will that which is evil.
 
@@ -840,7 +967,7 @@ Others not elected, although they may be called by the Ministry of the Word, \R{
 \C{13}{John 6:44,45,65; 1 John 2:24,25}
 \C{14}{Acts 4:12; John 4:22; 17:3}
 \footnoteend
-
+\pagebreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 11
 \ResetReference
@@ -903,11 +1030,13 @@ The justification of Believers under the Old Testament, was in all these respect
 \C{18}{Galatians 3:9; Romans 4:22-24}
 \footnoteend
 
+\pagebreak
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 12
 \ResetReference
 \chapter{Of Adoption} %1688
-ALL those that are justified, \textit{God} vouchsafed in, and for the sake of his \oldgrammar{onley}{only} \textit{Son Jesus Christ}, to make partakers of the Grace \R{}of \textit{Adoption}; by which they are taken into the Mumber, and enjoy the Liberties, and \R{}Privileges of the Children of \textit{God}; have his \R{}Name put upon them, \R{}receive the \textit{Spirit} of \textit{Adoption}, \R{}have access to the Throne of Grace with boldness; are enabled to cry \textit{Abba, Father}; are \R{}pitied, \R{}protected, \R{}provided for, and \R{}chastened by him as by a Father; yet never \R{}cast off, but sealed \R{}to the Day of Redemption, and inherit the Promises \R{}as Heirs of Everlasting Salvation.
+\oldleadinXII{ALL}{All} those that are justified, \textit{God} vouchsafed in, and for the sake of his \oldgrammar{onley}{only} \textit{Son Jesus Christ}, to make partakers of the Grace \R{}of \textit{Adoption}; by which they are taken into the Mumber, and enjoy the Liberties, and \R{}Privileges of the Children of \textit{God}; have his \R{}Name put upon them, \R{}receive the \textit{Spirit} of \textit{Adoption}, \R{}have access to the Throne of Grace with boldness; are enabled to cry \textit{Abba, Father}; are \R{}pitied, \R{}protected, \R{}provided for, and \R{}chastened by him as by a Father; yet never \R{}cast off, but sealed \R{}to the Day of Redemption, and inherit the Promises \R{}as Heirs of Everlasting Salvation.
 
 \footnotebegin
 \C{1}{Ephesians 1:5; Galatians 4:4,5}
@@ -1160,7 +1289,7 @@ And though they may, through the temptation of Satan and of the World, the preva
 \C{13}{2 Samuel 12:14}
 \C{14}{Luke 22:32,61,62}
 \footnoteend
-
+\pagebreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 18
 \ResetReference
@@ -1256,7 +1385,7 @@ The Moral Law doth for ever bind all, \R{}as well justified persons as others, t
 \C{11}{James 2:10,11}
 \C{12}{Matthew 5:17-19; Romans 3:31}
 \footnoteend
-\pagebreak
+
 \paragraph{6} %1688
 Although true Believers be not under the Law, as a Covenant of Works, \R{}to be thereby justified or condemned, yet it is of great use to them, as well as to others, in that, as a Rule of Life, informing them of the Will of God, and their Duty, it directs and binds them to walk accordingly; \R{}discovering also the sinful Pollutions of their Natures, Hearts and Lives, so as examining themselves thereby, they may come to further conviction of, humiliation for, and hatred against Sin; together with a clearer sight of the need they have of Christ and the perfection of his Obedience: It is likewise of use to the Regenerate to restrain their Corruptions, in that it forbids Sin; and the Threatenings of it serve to shew what even their Sins deserve, and what Afflictions in this Life they may expect for them, although freed from the Curse and unallayed rigour thereof. The Promises of it likewise shew them God’s approbation of Obedience, and what Blessings they may expect upon the performance thereof, though not as due to them by the Law as a Covenant of Works; so as Man’s doing Good and refraining from Evil, because the Law \oldgrammar{incourageth}{encourageth} to the one and deterreth from the other, is no Evidence of his being \R{}under the Law and not under Grace.
 
@@ -1273,6 +1402,8 @@ Neither are the \oldgrammar{forementioned}{aforementioned} Uses of the Law \R{}c
 \C{16}{Galatians 3:21}
 \C{17}{Ezekiel 36:27}
 \footnoteend
+
+\pagebreak
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 20
@@ -1312,6 +1443,7 @@ Although the Gospel be the only outward means, of revealing Christ, and saving G
 \C{9}{John 6:44; 2 Corinthians 4:4,6}
 \footnoteend
 
+\pagebreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 21
 \ResetReference
@@ -1418,7 +1550,6 @@ The \R{}Reading of the Scriptures, Preaching, and \R{}Hearing the Word of God, T
 \C{22}{Exodus 15:1 etc., Psalms 107}
 \footnoteend
 
-\pagebreak
 \paragraph{6} %1688
 Neither Prayer, nor any other part of Religious Worship, is now, under the Gospel, tied unto, or made more acceptable by, any place in which it is \R{}performed, or towards which it is directed; but God is to be worshipped every where in Spirit, and in Truth; as in \R{}private Families \R{}daily, and \R{}in secret each one by himself, so more solemnly in the public Assemblies, which are not carelessly, nor wilfully, to be \R{}neglected, or forsaken, when God by his Word or Providence calleth thereunto.
 
@@ -1646,7 +1777,7 @@ The way appointed by \textit{Christ} for the Calling of any person, fitted and g
 \C{17}{1 Timothy 4:14}
 \C{18}{Acts 6:3,5-6}
 \footnoteend
-
+\pagebreak
 \paragraph{10} %1688
 The Work of Pastors being constantly to attend the Service of Christ, in his Churches, in the Ministry of the Word, and Prayer, \R{}with watching for their Souls, as they that must give an account to him; it is incumbent on the Churches to whom they Minister, not only to give them all due respect, \R{}but also to communicate to them of all their good things, according to their ability, so as they may have a comfortable supply, without being themselves \R{}entangled in Secular Affairs; and may also be capable of exercising \R{}Hospitality towards others; and this is required by the \R{}Law of Nature, and by the Express Order of our Lord Jesus, who hath ordained that they that Preach the Gospel should Live of the Gospel.
 
@@ -1883,7 +2014,7 @@ The Bodies of the unjust shall, by the power of Christ, be raised to dishonour; 
 \footnotebegin
 \C{8}{Acts 24:15; John 5:28-29; Philemon 3:21}
 \footnoteend
-
+\pagebreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter 32
 \ResetReference
@@ -1927,6 +2058,14 @@ As Christ would have us to be certainly persuaded, that there shall be a day of 
 
 % 🙚🙘
 \pagebreak
+\newgeometry{
+  left=1in,
+  right=1in,   % wide margin for notes
+  top=1in,
+  bottom=1in,
+  marginparwidth=0in,
+  marginparsep=0.125in
+}
 WE the MINISTERS and MESSENGERS of, and concerned for, upwards of one hundred BAPTIZED CONGREGATIONS in \textit{England} and \textit{Wales} (denying \textit{Arminianism}\mynote{A system of doctrine taught by Jacobus Arminius (1560-1609), Dutch theologian. He rejected the Reformers’ understanding of salvation by God’s sovereign election, teaching instead that God’s election of individuals was based on His foreknowledge of their accepting or rejecting Christ by their own free will}), being met together in \textit{London}, from the third of the seventh month, to the eleventh of the same 1689, to consider of some things that might be for the glory of God, and the good of these congregations; have thought meet (for the satisfaction of all other Christians that differ from us in the point of Baptism) to recommend to their perusal the confession of our faith, which confession we own, as containing the doctrine of our faith and practice, and do desire that the members of our churches respectively do furnish themselves therewith.
 
 \begin{table}[H]
